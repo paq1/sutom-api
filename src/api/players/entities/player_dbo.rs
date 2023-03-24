@@ -24,6 +24,7 @@ impl From<PlayerDbo> for Player {
 
 impl From<Document> for PlayerDbo {
     fn from(value: Document) -> Self {
-        mongodb::bson::from_bson(Bson::Document(value)).unwrap()
+        mongodb::bson::from_bson(Bson::Document(value))
+            .unwrap()
     }
 }

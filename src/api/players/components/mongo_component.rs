@@ -10,9 +10,12 @@ pub trait ClientMongoComponent {
         Client::with_options(client_option)
     }
 
-    fn collection_player(client: Client) -> Collection<Document> {
-        client
-            .database("sutom")
-            .collection("player")
+    async fn collection_player() -> Result<Collection<Document>, mongodb::error::Error> {
+        Ok(
+            Self::connection()
+                .await?
+                .database("sutom")
+                .collection("player")
+        )
     }
 }

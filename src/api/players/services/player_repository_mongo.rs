@@ -32,15 +32,14 @@ impl PlayerRepositoryMongo {
         )
     }
 
-    pub async fn new() -> Self {
-        Self {
-            collection: {
-                Self::connection()
-                    .await
-                    .map(|client| Self::collection_player(client))
-                    .unwrap()
+    pub async fn new() -> Result<Self, mongodb::error::Error> {
+        Ok(
+            Self {
+                collection: {
+                    Self::collection_player().await?
+                }
             }
-        }
+        )
     }
 }
 
