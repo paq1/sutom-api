@@ -1,5 +1,10 @@
-use bson::{Bson, doc, Document};
-use mongodb::{Collection, Cursor};
+use mongodb::{
+    Collection,
+    Cursor,
+    bson::Bson,
+    bson::doc,
+    bson::Document
+};
 use mongodb::results::InsertOneResult;
 use crate::core::players::entities::player::Player;
 use crate::core::players::services::player_repository::PlayerRepository;
@@ -24,7 +29,7 @@ impl PlayerRepositoryMongo {
         let players = bsons
             .into_iter()
             .map(|doc| {
-                    let player: PlayerDbo = bson::from_bson(Bson::Document(doc)).unwrap();
+                    let player: PlayerDbo = mongodb::bson::from_bson(Bson::Document(doc)).unwrap();
                     Some(player)
                 }
             )

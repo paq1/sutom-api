@@ -1,7 +1,8 @@
-use bson::oid::ObjectId;
+use mongodb::bson::oid::ObjectId;
 use rocket::serde::{Serialize, Deserialize};
 
 #[derive(Debug, Serialize, Deserialize)]
+#[serde(crate = "rocket::serde")]
 pub struct PlayerDbo {
     pub _id: ObjectId,
     pub name: String,

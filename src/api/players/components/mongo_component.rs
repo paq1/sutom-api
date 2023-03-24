@@ -1,5 +1,4 @@
-use bson::Document;
-use mongodb::{options::ClientOptions, Client, Collection};
+use mongodb::{options::ClientOptions, Client, Collection, bson::Document};
 use mongodb::error::Error;
 
 #[async_trait]
