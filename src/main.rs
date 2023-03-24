@@ -1,9 +1,11 @@
 #[macro_use] extern crate rocket;
 mod models;
 mod api;
-use crate::api::routes::read_test::ressources;
+mod core;
+
+use crate::api::players::components::app_launcher::AppLauncher;
 
 #[launch]
-fn rocket() -> _ {
-    rocket::build().mount("/", routes![ressources])
+async fn rocket() -> _ {
+    AppLauncher::launch_rocket().await
 }
