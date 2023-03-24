@@ -1,6 +1,5 @@
 use mongodb::{
     Collection,
-    bson::doc,
     bson::Document,
 };
 use mongodb::results::InsertOneResult;
