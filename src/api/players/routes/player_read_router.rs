@@ -13,14 +13,7 @@ pub async fn get_players(
             .fetch_many()
             .await
             .into_iter()
-            .map(|player| {
-                PlayerView {
-                    _id: "unknown".to_string(),
-                    name: player.name.clone(),
-                    score: player.score,
-                    nombre_de_parties: player.nombre_de_parties
-                }
-            })
-            .collect::<Vec<PlayerView>>()
+            .map(|player| player.into())
+            .collect::<Vec<_>>()
     )
 }
