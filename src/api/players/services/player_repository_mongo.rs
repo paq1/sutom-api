@@ -1,9 +1,7 @@
 use mongodb::{
     Collection,
-    Cursor,
-    bson::Bson,
     bson::doc,
-    bson::Document
+    bson::Document,
 };
 use mongodb::results::InsertOneResult;
 use crate::core::players::entities::player::Player;
@@ -14,36 +12,25 @@ use crate::api::players::components::mongo_component::ClientMongoComponent;
 use crate::api::players::entities::player_dbo::PlayerDbo;
 
 pub struct PlayerRepositoryMongo {
-    pub collection: Collection<Document>
+    pub collection: Collection<Document>,
 }
+
 impl ClientMongoComponent for PlayerRepositoryMongo {}
 
 impl PlayerRepositoryMongo {
     async fn find_all(&self) -> Result<Vec<Player>, Error> {
-        let cursor: Cursor<Document> = self.collection.find(None, None).await?;
-
-        let bsons = cursor
-            .try_collect::<Vec<Document>>()
-            .await?;
-
-        let players = bsons
-            .into_iter()
-            .map(|doc| {
-                    let player: PlayerDbo = mongodb::bson::from_bson(Bson::Document(doc)).unwrap();
-                    Some(player)
-                }
-            )
-            .map(|dbo_opt| {
-                let dbo = dbo_opt.unwrap();
-                Player {
-                    name: dbo.name.clone(),
-                    score: dbo.score,
-                    nombre_de_parties: dbo.nombre_de_parties
-                }
-            })
-            .collect::<Vec<Player>>();
-
-        Ok(players)
+        Ok(
+            self.collection
+                .find(None, None)
+                .await?
+                .try_collect::<Vec<Document>>()
+                .await?
+                .into_iter()
+                .map(|doc| doc.into())
+                .map(|dbo: PlayerDbo| dbo.into())
+                .collect::<Vec<Player>>()
+                .into()
+        )
     }
 
     pub async fn new() -> Self {
