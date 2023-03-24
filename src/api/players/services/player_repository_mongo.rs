@@ -1,11 +1,12 @@
-use bson::{doc, Document};
-use mongodb::Collection;
-// use mongodb::{Collection, Cursor};
+use bson::{Bson, doc, Document};
+use mongodb::{Collection, Cursor};
 use mongodb::results::InsertOneResult;
 use crate::core::players::entities::player::Player;
 use crate::core::players::services::player_repository::PlayerRepository;
 use mongodb::error::Error;
+use rocket::futures::{TryStreamExt};
 use crate::api::players::components::mongo_component::ClientMongoComponent;
+use crate::api::players::entities::player_dbo::PlayerDbo;
 
 pub struct PlayerRepositoryMongo {
     pub collection: Collection<Document>
@@ -14,27 +15,30 @@ impl ClientMongoComponent for PlayerRepositoryMongo {}
 
 impl PlayerRepositoryMongo {
     async fn find_all(&self) -> Result<Vec<Player>, Error> {
-        // let cursor: Cursor<Document> = self.collection.find(None, None).await?;
-        // let mut documents: Vec<Document> = vec![];
-        // for result in cursor {
-        //     match result {
-        //         Ok(document) => documents.push(document),
-        //         Err(e) => return e,
-        //     }
-        // }
-        // let docs = documents
-        //     .iter()
-        //     .map(|doc| {
-        //         Player {
-        //             name: String::from("player_dbo"),
-        //             score: 0f32,
-        //             nombre_de_parties: 0
-        //         }
-        //     })
-        //     .collect::<Vec<Player>>();
-        // Ok(docs)
+        let cursor: Cursor<Document> = self.collection.find(None, None).await?;
 
-        Ok(vec![])
+        let bsons = cursor
+            .try_collect::<Vec<Document>>()
+            .await?;
+
+        let players = bsons
+            .into_iter()
+            .map(|doc| {
+                    let player: PlayerDbo = bson::from_bson(Bson::Document(doc)).unwrap();
+                    Some(player)
+                }
+            )
+            .map(|dbo_opt| {
+                let dbo = dbo_opt.unwrap();
+                Player {
+                    name: dbo.name.clone(),
+                    score: dbo.score,
+                    nombre_de_parties: dbo.nombre_de_parties
+                }
+            })
+            .collect::<Vec<Player>>();
+
+        Ok(players)
     }
 
     pub async fn new() -> Self {

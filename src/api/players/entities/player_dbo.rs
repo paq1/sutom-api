@@ -1,6 +1,7 @@
 use rocket::serde::{Serialize};
+use serde::Deserialize;
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct PlayerDbo {
     pub _id: String,
     pub name: String,
