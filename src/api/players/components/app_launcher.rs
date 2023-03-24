@@ -1,6 +1,8 @@
 use rocket::{Build, Rocket};
 use crate::api::players::services::player_repository_mongo::PlayerRepositoryMongo;
 use crate::api::players::routes::read_test::ressources;
+use crate::api::players::routes::player_read_router::get_players;
+use crate::api::players::routes::player_write_router::create_command;
 
 pub struct AppLauncher;
 
@@ -10,7 +12,7 @@ impl AppLauncher {
 
         rocket::build()
             .manage(player_repository)
-            .mount("/", routes![ressources])
+            .mount("/", routes![ressources, get_players, create_command])
     }
 }
 
