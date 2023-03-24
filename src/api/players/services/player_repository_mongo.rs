@@ -1,15 +1,16 @@
-use std::any::Any;
 use bson::{doc, Document};
-use mongodb::{Collection, Cursor};
+use mongodb::Collection;
+// use mongodb::{Collection, Cursor};
 use mongodb::results::InsertOneResult;
-use crate::api::players::entities::player_dbo::PlayerDbo;
 use crate::core::players::entities::player::Player;
 use crate::core::players::services::player_repository::PlayerRepository;
 use mongodb::error::Error;
+use crate::api::players::components::mongo_component::ClientMongoComponent;
 
 pub struct PlayerRepositoryMongo {
     pub collection: Collection<Document>
 }
+impl ClientMongoComponent for PlayerRepositoryMongo {}
 
 impl PlayerRepositoryMongo {
     async fn find_all(&self) -> Result<Vec<Player>, Error> {
@@ -35,6 +36,23 @@ impl PlayerRepositoryMongo {
 
         Ok(vec![])
     }
+
+    pub async fn new() -> Self {
+        let client_opt = Self::connection()
+            .await
+            .map(|client| Some(client))
+            .unwrap_or(None);
+
+        let collection_opt = client_opt
+            .map(|client| Self::collection_player(client))
+            .or(None);
+
+        let collection = collection_opt.unwrap();
+
+        Self {
+            collection
+        }
+    }
 }
 
 #[async_trait]
@@ -47,6 +65,7 @@ impl PlayerRepository<Player, Result<InsertOneResult, Error>> for PlayerReposito
         };
         self.collection
             .insert_one(document, None)
+            .await
     }
 
     async fn fetch_many(&self) -> Vec<Player> {

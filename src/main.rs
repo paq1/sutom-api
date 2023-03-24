@@ -3,12 +3,9 @@ mod models;
 mod api;
 mod core;
 
-use crate::api::players::components::main_component::Component;
-use crate::api::players::routes::read_test::ressources;
+use crate::api::players::components::app_launcher::AppLauncher;
 
 #[launch]
-fn rocket() -> _ {
-    let component = Component {};
-
-    rocket::build().mount("/", routes![ressources])
+async fn rocket() -> _ {
+    AppLauncher::launch_rocket().await
 }
