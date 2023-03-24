@@ -34,19 +34,13 @@ impl PlayerRepositoryMongo {
     }
 
     pub async fn new() -> Self {
-        let client_opt = Self::connection()
-            .await
-            .map(|client| Some(client))
-            .unwrap_or(None);
-
-        let collection_opt = client_opt
-            .map(|client| Self::collection_player(client))
-            .or(None);
-
-        let collection = collection_opt.unwrap();
-
         Self {
-            collection
+            collection: {
+                Self::connection()
+                    .await
+                    .map(|client| Self::collection_player(client))
+                    .unwrap()
+            }
         }
     }
 }
