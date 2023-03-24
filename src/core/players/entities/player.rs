@@ -1,3 +1,4 @@
+use mongodb::bson::{doc, Document};
 use crate::models::views::player_view::PlayerView;
 
 pub struct Player {
@@ -13,6 +14,16 @@ impl From<Player> for PlayerView {
             name: value.name,
             score: value.score,
             nombre_de_parties: value.nombre_de_parties
+        }
+    }
+}
+
+impl From<Player> for Document {
+    fn from(value: Player) -> Self {
+        doc! {
+            "name": value.name,
+            "score": value.score,
+            "nombre_de_parties": value.nombre_de_parties
         }
     }
 }

@@ -48,11 +48,7 @@ impl PlayerRepositoryMongo {
 #[async_trait]
 impl PlayerRepository<Player, Result<InsertOneResult, Error>> for PlayerRepositoryMongo {
     async fn insert_player(&self, player: Player) -> Result<InsertOneResult, Error> {
-        let document = doc! {
-            "name": player.name,
-            "score": player.score,
-            "nombre_de_parties": player.nombre_de_parties
-        };
+        let document: Document = player.into();
         self.collection
             .insert_one(document, None)
             .await
