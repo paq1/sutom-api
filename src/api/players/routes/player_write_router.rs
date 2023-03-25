@@ -1,7 +1,8 @@
 use rocket::http::Status;
 use rocket::response::status;
-use rocket::serde::{json::Json};
+use rocket::serde::json::Json;
 use rocket::State;
+
 use crate::api::players::services::player_repository_mongo::PlayerRepositoryMongo;
 use crate::core::players::entities::player::Player;
 use crate::core::players::services::player_repository::PlayerRepository;
@@ -23,7 +24,8 @@ pub async fn create_command(
                 score: cmd.score,
                 nombre_de_parties: cmd.nombre_de_parties
             }
-        ).await
+        )
+        .await
         .map(|_| {
             Json(
                 JsonDataResponse {

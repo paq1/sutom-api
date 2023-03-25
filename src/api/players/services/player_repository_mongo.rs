@@ -1,16 +1,17 @@
 use mongodb::{
-    Collection,
-    bson::Document,
     bson::doc,
+    bson::Document,
+    Collection,
     results::InsertOneResult
 };
-use crate::core::players::entities::player::Player;
-use crate::core::players::services::player_repository::PlayerRepository;
 use mongodb::error::Error;
 use rocket::futures::{TryFutureExt, TryStreamExt};
+
 use crate::api::players::components::mongo_component::ClientMongoComponent;
 use crate::api::players::entities::player_dbo::PlayerDbo;
+use crate::core::players::entities::player::Player;
 use crate::core::players::errors::custom::CustomError;
+use crate::core::players::services::player_repository::PlayerRepository;
 
 pub struct PlayerRepositoryMongo {
     pub collection: Collection<Document>,
