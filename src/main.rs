@@ -10,5 +10,6 @@ mod core;
 
 #[launch]
 async fn rocket() -> Rocket<Build> {
+    dotenv::dotenv().ok();
     AppLauncher::launch_rocket().await.unwrap()
 }
