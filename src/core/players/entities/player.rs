@@ -1,6 +1,7 @@
 use mongodb::bson::{doc, Document};
 use crate::models::views::player_view::PlayerView;
 
+#[derive(Clone)]
 pub struct Player {
     pub name: String,
     pub score: f32,
