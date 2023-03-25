@@ -9,6 +9,15 @@ pub struct Player {
     pub parties: Vec<Party>
 }
 
+impl Player {
+    pub fn add_party(&self, party: Party) -> Self {
+        Player {
+            name: self.name.clone(),
+            parties: self.parties.clone().into_iter().chain(vec![party]).collect::<Vec<_>>()
+        }
+    }
+}
+
 impl From<Player> for PlayerView {
     fn from(value: Player) -> Self {
         PlayerView {

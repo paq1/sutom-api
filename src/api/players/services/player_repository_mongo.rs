@@ -9,6 +9,7 @@ use rocket::futures::{TryFutureExt, TryStreamExt};
 
 use crate::api::players::components::mongo_component::ClientMongoComponent;
 use crate::api::players::entities::player_dbo::PlayerDbo;
+use crate::core::players::entities::party::Party;
 use crate::core::players::entities::player::Player;
 use crate::core::players::errors::custom::CustomError;
 use crate::core::players::services::player_repository::PlayerRepository;
@@ -58,6 +59,26 @@ impl PlayerRepository<Player, Result<InsertOneResult, CustomError>> for PlayerRe
                     })
             })
             .unwrap_or(None)
+    }
+
+    async fn add_party(&self, name: String, party: Party) -> Result<(), CustomError> {
+        match self.fetch_one_by_name(name.clone()).await {
+            Some(player) => {
+                let filter = doc! { "name": player.name.as_str() };
+                let updated_player = player.add_party(party);
+                let update = doc! {
+                    "$set": {
+                        "parties": updated_player.parties
+                    }
+                };
+                self.collection
+                    .update_one(filter, update, None)
+                    .await
+                    .map(|_| ())
+                    .map_err(|_| CustomError::new("erreur lors de l'ecriture"))
+            },
+            None => Err(CustomError::new(format!("la personne ${} n'existe pas", name).as_str()))
+        }
     }
 }
 

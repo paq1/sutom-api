@@ -1,5 +1,6 @@
 use mongodb::bson;
 use mongodb::bson::{Bson, doc};
+use crate::models::commands::add_party_command::AddPartyCommand;
 
 use crate::models::views::party_view::PartyView;
 
@@ -13,6 +14,16 @@ pub struct Party {
 impl From<Party> for PartyView {
     fn from(value: Party) -> Self {
         PartyView {
+            taille_du_mot: value.taille_du_mot,
+            nombre_essaies: value.nombre_essaies,
+            nombre_essaies_total: value.nombre_essaies_total
+        }
+    }
+}
+
+impl From<AddPartyCommand> for Party {
+    fn from(value: AddPartyCommand) -> Self {
+        Party {
             taille_du_mot: value.taille_du_mot,
             nombre_essaies: value.nombre_essaies,
             nombre_essaies_total: value.nombre_essaies_total
