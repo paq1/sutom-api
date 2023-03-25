@@ -2,7 +2,7 @@ use std::fmt::{self, Display, Formatter};
 
 #[derive(Debug)]
 pub struct CustomError {
-    message: String
+    pub message: String
 }
 
 impl CustomError {

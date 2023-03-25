@@ -1,3 +1,5 @@
+use rocket::http::Status;
+use rocket::response::status;
 use rocket::serde::{json::Json};
 use rocket::State;
 use crate::api::players::services::player_repository_mongo::PlayerRepositoryMongo;
@@ -10,33 +12,33 @@ use crate::models::views::json_data_response::JsonDataResponse;
 pub async fn create_command(
     player_repository: &State<PlayerRepositoryMongo>,
     create_command: Json<CreatePlayerCommand>
-) -> Json<JsonDataResponse> {
+) -> Result<Json<JsonDataResponse>, status::Custom<Json<JsonDataResponse>>> {
 
     let cmd = create_command.0;
 
-    let insertion = player_repository
+    player_repository
         .insert_player(
             Player {
                 name: cmd.name.clone(),
                 score: cmd.score,
                 nombre_de_parties: cmd.nombre_de_parties
             }
-        ).await;
-
-    let response = match insertion {
-        Ok(_) => {
-            JsonDataResponse {
-                message: String::from("inserted")
-            }
-        },
-        Err(err) => {
-            JsonDataResponse {
-                message: format!("{:?}", err)
-            }
-        }
-    };
-
-    Json(
-        response
-    )
+        ).await
+        .map(|_| {
+            Json(
+                JsonDataResponse {
+                    message: String::from("inserted")
+                }
+            )
+        })
+        .map_err(|err| {
+            status::Custom(
+                Status::BadRequest,
+                Json(
+                    JsonDataResponse {
+                        message: err.message
+                    }
+                )
+            )
+        })
 }
