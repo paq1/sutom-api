@@ -40,7 +40,7 @@ impl PlayerRepository<Player, Result<InsertOneResult, CustomError>> for PlayerRe
         }
     }
 
-    async fn fetch_one_by_name(&self, name: String) -> Option<Player> {
+    async fn fetch_one_by_name(&self, name: String) -> Result<Player, CustomError> {
         self.collection
             .find_one(
                 Some(
@@ -55,15 +55,18 @@ impl PlayerRepository<Player, Result<InsertOneResult, CustomError>> for PlayerRe
                 dbo_doc_opt
                     .map(|dbo_doc| {
                         let player_dbo: PlayerDbo = dbo_doc.into();
-                        player_dbo.into()
+                        let player: Player = player_dbo.into();
+                        Ok(player)
                     })
+                    .unwrap_or(Err(CustomError::new("impossible de recupere le joueur")))
             })
-            .unwrap_or(None)
+            .unwrap()
+            .map_err(|err| CustomError::new(err.message.as_str()))
     }
 
     async fn add_party(&self, name: String, party: Party) -> Result<(), CustomError> {
-        match self.fetch_one_by_name(name.clone()).await {
-            Some(player) => {
+        self.fetch_one_by_name(name.clone())
+            .and_then(|player| async move {
                 let filter = doc! { "name": player.name.as_str() };
                 let updated_player = player.add_party(party);
                 let update = doc! {
@@ -76,9 +79,8 @@ impl PlayerRepository<Player, Result<InsertOneResult, CustomError>> for PlayerRe
                     .await
                     .map(|_| ())
                     .map_err(|_| CustomError::new("erreur lors de l'ecriture"))
-            },
-            None => Err(CustomError::new(format!("la personne ${} n'existe pas", name).as_str()))
-        }
+            })
+            .await
     }
 }
 
@@ -111,7 +113,7 @@ impl PlayerRepositoryMongo {
     async fn exist(&self, player: &Player) -> bool {
         self.fetch_one_by_name(player.name.clone())
             .await
-            .is_some()
+            .is_ok()
     }
 
     async fn insert_player_without_check(&self, player: &Player) -> Result<InsertOneResult, CustomError> {

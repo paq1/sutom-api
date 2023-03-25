@@ -1,10 +1,12 @@
 #[macro_use] extern crate rocket;
+
+use rocket::{Build, Rocket};
+
+use crate::api::players::components::app_launcher::AppLauncher;
+
 mod models;
 mod api;
 mod core;
-
-use rocket::{Build, Rocket};
-use crate::api::players::components::app_launcher::AppLauncher;
 
 #[launch]
 async fn rocket() -> Rocket<Build> {
