@@ -1,3 +1,5 @@
+use rocket::http::Status;
+use rocket::response::status;
 use rocket::serde::{json::Json};
 use rocket::State;
 use crate::api::players::services::player_repository_mongo::PlayerRepositoryMongo;
@@ -20,13 +22,24 @@ pub async fn get_players(
 }
 
 #[get("/players/<name>")]
-pub async fn get_players_by_name(
+pub async fn get_player_by_name(
     name: &str,
     player_repository: &State<PlayerRepositoryMongo>
-) -> Json<PlayerView> {
+) -> Result<Json<PlayerView>, status::Custom<Json<JsonDataResponse>>> {
     player_repository
         .fetch_one_by_name(name.into())
         .await
-        .map(|player| Json(player.into()))
-        .unwrap()
+        .map(|player| Ok(Json(player.into())))
+        .unwrap_or(
+            Err(
+                status::Custom(
+                    Status::NotFound,
+                    Json(
+                        JsonDataResponse {
+                            message: format!("le joueur {} n'existe pas", name)
+                        }
+                    )
+                )
+            )
+        )
 }
