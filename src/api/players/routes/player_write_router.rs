@@ -21,8 +21,7 @@ pub async fn create_command(
         .insert_player(
             Player {
                 name: cmd.name.clone(),
-                score: cmd.score,
-                nombre_de_parties: cmd.nombre_de_parties
+                parties: vec![]
             }
         )
         .await
