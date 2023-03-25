@@ -9,6 +9,7 @@ use rocket::futures::{TryFutureExt, TryStreamExt};
 
 use crate::api::players::components::mongo_component::ClientMongoComponent;
 use crate::api::players::entities::player_dbo::PlayerDbo;
+use crate::core::players::entities::party::Party;
 use crate::core::players::entities::player::Player;
 use crate::core::players::errors::custom::CustomError;
 use crate::core::players::services::player_repository::PlayerRepository;
@@ -39,7 +40,7 @@ impl PlayerRepository<Player, Result<InsertOneResult, CustomError>> for PlayerRe
         }
     }
 
-    async fn fetch_one_by_name(&self, name: String) -> Option<Player> {
+    async fn fetch_one_by_name(&self, name: String) -> Result<Player, CustomError> {
         self.collection
             .find_one(
                 Some(
@@ -54,10 +55,32 @@ impl PlayerRepository<Player, Result<InsertOneResult, CustomError>> for PlayerRe
                 dbo_doc_opt
                     .map(|dbo_doc| {
                         let player_dbo: PlayerDbo = dbo_doc.into();
-                        player_dbo.into()
+                        let player: Player = player_dbo.into();
+                        Ok(player)
                     })
+                    .unwrap_or(Err(CustomError::new("impossible de recupere le joueur")))
             })
-            .unwrap_or(None)
+            .unwrap()
+            .map_err(|err| CustomError::new(err.message.as_str()))
+    }
+
+    async fn add_party(&self, name: String, party: Party) -> Result<(), CustomError> {
+        self.fetch_one_by_name(name.clone())
+            .and_then(|player| async move {
+                let filter = doc! { "name": player.name.as_str() };
+                let updated_player = player.add_party(party);
+                let update = doc! {
+                    "$set": {
+                        "parties": updated_player.parties
+                    }
+                };
+                self.collection
+                    .update_one(filter, update, None)
+                    .await
+                    .map(|_| ())
+                    .map_err(|_| CustomError::new("erreur lors de l'ecriture"))
+            })
+            .await
     }
 }
 
@@ -90,7 +113,7 @@ impl PlayerRepositoryMongo {
     async fn exist(&self, player: &Player) -> bool {
         self.fetch_one_by_name(player.name.clone())
             .await
-            .is_some()
+            .is_ok()
     }
 
     async fn insert_player_without_check(&self, player: &Player) -> Result<InsertOneResult, CustomError> {

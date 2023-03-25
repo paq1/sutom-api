@@ -1,6 +1,8 @@
 use mongodb::bson::{Bson, Document};
 use mongodb::bson::oid::ObjectId;
-use rocket::serde::{Serialize, Deserialize};
+use rocket::serde::{Deserialize, Serialize};
+
+use crate::api::players::entities::party_dbo::PartyDbo;
 use crate::core::players::entities::player::Player;
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -8,16 +10,17 @@ use crate::core::players::entities::player::Player;
 pub struct PlayerDbo {
     pub _id: ObjectId,
     pub name: String,
-    pub score: f32,
-    pub nombre_de_parties: u32
+    pub parties: Vec<PartyDbo>
 }
 
 impl From<PlayerDbo> for Player {
     fn from(value: PlayerDbo) -> Self {
         Player {
             name: value.name,
-            score: value.score,
-            nombre_de_parties: value.nombre_de_parties
+            parties: value.parties
+                .into_iter()
+                .map(|partie| partie.into())
+                .collect::<Vec<_>>()
         }
     }
 }
