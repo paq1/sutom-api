@@ -1,3 +1,4 @@
+use chrono::Datelike;
 use mongodb::{
     bson::doc,
     bson::Document,
@@ -65,26 +66,62 @@ impl PlayerRepository<Player, Result<InsertOneResult, CustomError>> for PlayerRe
     }
 
     async fn add_party(&self, name: String, party: Party) -> Result<(), CustomError> {
+        let party_ref = &party.clone();
         self.fetch_one_by_name(name.clone())
             .and_then(|player| async move {
-                let filter = doc! { "name": player.name.as_str() };
-                let updated_player = player.add_party(party);
-                let update = doc! {
-                    "$set": {
-                        "parties": updated_player.parties
+                let player_ref = &player;
+                let date_du_jour = chrono::Local::now();
+                let date_now_str = &format!(
+                    "{}-{}-{}",
+                    date_du_jour.day(),
+                    date_du_jour.month(),
+                    date_du_jour.year()
+                );
+                let date_derniere_partie_opt = player_ref.last_party_date.clone();
+
+                match date_derniere_partie_opt {
+                    Some(date) => {
+                        if date != date_now_str.clone() {
+                            self.simple_add_party(party_ref.clone(), player_ref)
+                                .await
+                        } else {
+                            Err(CustomError::new("vous avez deja ajouté une partie aujourd'hui"))
+                        }
+                    },
+                    None => {
+                        self.simple_add_party(party.clone(), player_ref)
+                            .await
                     }
-                };
-                self.collection
-                    .update_one(filter, update, None)
-                    .await
-                    .map(|_| ())
-                    .map_err(|_| CustomError::new("erreur lors de l'ecriture"))
+                }
             })
             .await
     }
 }
 
 impl PlayerRepositoryMongo {
+    async fn simple_add_party(&self, party: Party, old_player: &Player) -> Result<(), CustomError> {
+        let filter = doc! { "name": old_player.name.as_str() };
+        let updated_player = old_player.add_party(party);
+        let date_du_jour = chrono::Local::now();
+        let date_now_str = format!(
+            "{}-{}-{}",
+            date_du_jour.day(),
+            date_du_jour.month(),
+            date_du_jour.year()
+        );
+        let update = doc! {
+            "$set": {
+                "last_party_date": date_now_str,
+                "parties": updated_player.parties
+            }
+        };
+        self.collection
+            .update_one(filter, update, None)
+            .await
+            .map(|_| ())
+            .map_err(|_| CustomError::new("erreur lors de l'ecriture"))
+    }
+
     async fn find_all(&self) -> Result<Vec<Player>, Error> {
         Ok(
             self.collection

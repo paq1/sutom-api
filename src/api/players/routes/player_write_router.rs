@@ -22,6 +22,7 @@ pub async fn create_command(
         .insert_player(
             Player {
                 name: cmd.name.clone(),
+                last_party_date: None,
                 parties: vec![]
             }
         )

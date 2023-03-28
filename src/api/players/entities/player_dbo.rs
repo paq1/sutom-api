@@ -10,6 +10,7 @@ use crate::core::players::entities::player::Player;
 pub struct PlayerDbo {
     pub _id: ObjectId,
     pub name: String,
+    pub last_party_date: Option<String>,
     pub parties: Vec<PartyDbo>
 }
 
@@ -17,6 +18,7 @@ impl From<PlayerDbo> for Player {
     fn from(value: PlayerDbo) -> Self {
         Player {
             name: value.name,
+            last_party_date: value.last_party_date,
             parties: value.parties
                 .into_iter()
                 .map(|partie| partie.into())

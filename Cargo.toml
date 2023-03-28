@@ -9,3 +9,4 @@ edition = "2021"
 rocket = { features = ["json"], version = "0.5.0-rc.2" }
 mongodb = "2.1"
 dotenv = "0.15.0"
+chrono = "0.4.24"
