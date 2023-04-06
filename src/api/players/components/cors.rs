@@ -1,4 +1,4 @@
-use rocket::http::Header;
+use rocket::http::{Header, Status};
 use rocket::{Request, Response};
 use rocket::fairing::{Fairing, Info, Kind};
 
@@ -14,9 +14,17 @@ impl Fairing for CORS {
     }
 
     async fn on_response<'r>(&self, _request: &'r Request<'_>, response: &mut Response<'r>) {
+
+        println!("status de ma reponse {}", response.status().code);
+
         response.set_header(Header::new("Access-Control-Allow-Origin", "*"));
         response.set_header(Header::new("Access-Control-Allow-Methods", "POST, GET, PATCH, OPTIONS"));
         response.set_header(Header::new("Access-Control-Allow-Headers", "*"));
         response.set_header(Header::new("Access-Control-Allow-Credentials", "true"));
+
+        if _request.method().as_str() == "OPTIONS" {
+            response.set_status(Status::new(Status::Ok.code));
+        }
+
     }
 }
