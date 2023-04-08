@@ -1,4 +1,5 @@
 use rocket::{Build, Rocket};
+use crate::api::players::components::cors::CORS;
 use crate::api::players::services::player_repository_mongo::PlayerRepositoryMongo;
 use crate::api::players::routes::read_test::ressources;
 use crate::api::players::routes::player_read_router::get_players;
@@ -15,6 +16,7 @@ impl AppLauncher {
             .map(|player_repository| {
                 rocket::build()
                     .manage(player_repository)
+                    .attach(CORS)
                     .mount(
                         "/",
                         routes![
