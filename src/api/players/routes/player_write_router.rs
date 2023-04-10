@@ -61,3 +61,16 @@ pub async fn add_party_command(
         .map(|_| Json(JsonDataResponse::new("OK")))
         .map_err(|err| status::Custom(Status::BadRequest, Json(JsonDataResponse::new(err.message.as_str()))))
 }
+
+#[delete("/players/commands/delete-player/<name>")]
+pub async fn delete_player_command(
+    name: &str,
+    player_repository: &State<PlayerRepositoryMongo>
+) -> Result<Json<JsonDataResponse>, status::Custom<Json<JsonDataResponse>>> {
+
+    player_repository
+        .delete_player(name)
+        .await
+        .map(|_| Json(JsonDataResponse::new("OK")))
+        .map_err(|err| status::Custom(Status::BadRequest, Json(JsonDataResponse::new(err.message.as_str()))))
+}

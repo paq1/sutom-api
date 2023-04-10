@@ -31,6 +31,14 @@ impl PlayerRepository<Player, Result<InsertOneResult, CustomError>> for PlayerRe
         }
     }
 
+    async fn delete_player(&self, player_name: &str) -> Result<(), CustomError> {
+        if self.fetch_one_by_name(player_name.into()).await.is_ok() {
+            self.delete_player_without_check(player_name).await
+        } else {
+            Err(CustomError::new("le joueur n'éxiste pas"))
+        }
+    }
+
     async fn fetch_many(&self) -> Vec<Player> {
         match self.find_all().await {
             Ok(player) => player,
@@ -160,4 +168,14 @@ impl PlayerRepositoryMongo {
             .map_err(|_| CustomError::new("erreur lors de l'insertion en base"))
             .await
     }
+
+    async fn delete_player_without_check(&self, player_name: &str) -> Result<(), CustomError> {
+        let document: Document = doc! {"name": player_name};
+        self.collection
+            .delete_one(document, None)
+            .await
+            .map(|_| ())
+            .map_err(|_| CustomError::new("erreur lors de la suppression"))
+    }
+
 }
